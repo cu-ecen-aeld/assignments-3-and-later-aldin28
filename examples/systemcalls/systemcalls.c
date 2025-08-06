@@ -1,4 +1,10 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+
 
 /**
  * @param cmd the command to execute with system()
@@ -9,15 +15,15 @@
 */
 bool do_system(const char *cmd)
 {
+    if (cmd == NULL) {
+        return false;
+    }
 
-/*
- * TODO  add your code here
- *  Call the system() function with the command set in the cmd
- *   and return a boolean true if the system() call completed with success
- *   or false() if it returned a failure
-*/
+    int ret = system(cmd);
 
-    return true;
+    // system() returns -1 if the call to system itself fails
+    // Otherwise, we check if the command exited with a 0 status code
+    return (ret != -1 && WIFEXITED(ret) && WEXITSTATUS(ret) == 0);
 }
 
 /**
@@ -40,6 +46,8 @@ bool do_exec(int count, ...)
     va_start(args, count);
     char * command[count+1];
     int i;
+    int waitstatus = 0;
+    pid_t pid;
     for(i=0; i<count; i++)
     {
         command[i] = va_arg(args, char *);
@@ -48,6 +56,26 @@ bool do_exec(int count, ...)
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
     command[count] = command[count];
+
+    pid = fork();
+    if (pid < 0) {
+	    perror("fork");	
+	    return false;
+    } else if (pid == 0) {
+	    execv(command[0], (char * const *)command);
+	    perror("execv");
+	    return false;
+    } else {
+        if (wait(&waitstatus) == -1) {
+            perror("wait");
+            return false;
+        }
+
+        // Check if child exited normally and with exit code 0
+        return (WIFEXITED(waitstatus) && WEXITSTATUS(waitstatus) == 0);
+    }
+
+
 
 /*
  * TODO:
@@ -84,6 +112,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     // and may be removed
     command[count] = command[count];
 
+    va_end(args);
 
 /*
  * TODO
@@ -92,8 +121,22 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    int fd = open(outputfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0) {
+        perror("open");
+        return false;
+    }
 
-    va_end(args);
+    // Redirect stdout to the file
+    if (dup2(fd, STDOUT_FILENO) < 0) {
+        perror("dup2");
+        close(fd);
+        return false;
+    }
 
-    return true;
+    close(fd);
+    execv(command[0], command);
+    perror("execv");
+
+    return false;
 }
