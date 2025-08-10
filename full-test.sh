@@ -1,19 +1,24 @@
 #!/bin/bash
-# This script can be copied into your base directory for use with
-# automated testing using assignment-autotest.  It automates the
-# steps described in https://github.com/cu-ecen-5013/assignment-autotest/blob/master/README.md#running-tests
+# Auto-detect and set CROSS_COMPILE path
 set -e
+
+# Try to find ARM64 cross-compiler
+TOOLCHAIN_PATH=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+if [ -z "$TOOLCHAIN_PATH" ]; then
+    echo "ERROR: No ARM64 cross-compiler found under /home/aldin/coursera"
+    exit 1
+fi
+
+# Set CROSS_COMPILE without the gcc suffix
+export CROSS_COMPILE="${TOOLCHAIN_PATH%gcc}"
+echo "Using CROSS_COMPILE=$CROSS_COMPILE"
 
 cd `dirname $0`
 test_dir=`pwd`
 echo "starting test with SKIP_BUILD=\"${SKIP_BUILD}\" and DO_VALIDATE=\"${DO_VALIDATE}\""
 
-# This part of the script always runs as the current user, even when
-# executed inside a docker container.
-# See the logic in parse_docker_options for implementation
 logfile=test.sh.log
-# See https://stackoverflow.com/a/3403786
-# Place stdout and stderr in a log file
 exec > >(tee -i -a "$logfile") 2> >(tee -i -a "$logfile" >&2)
 
 echo "Running test with user $(whoami)"
@@ -26,10 +31,7 @@ if [ $unit_test_rc -ne 0 ]; then
     echo "Unit test failed"
 fi
 
-# If there's a configuration for the assignment number, use this to look for
-# additional tests
 if [ -f conf/assignment.txt ]; then
-    # This is just one example of how you could find an associated assignment
     assignment=`cat conf/assignment.txt`
     if [ -f ./assignment-autotest/test/${assignment}/assignment-test.sh ]; then
         echo "Executing assignment test script"
@@ -50,3 +52,4 @@ else
     exit 1
 fi
 exit ${unit_test_rc}
+

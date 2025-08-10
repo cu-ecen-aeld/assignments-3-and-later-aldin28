@@ -30,21 +30,29 @@ if [ ! -d "${OUTDIR}/linux-stable" ]; then
 	git clone ${KERNEL_REPO} --depth 1 --single-branch --branch ${KERNEL_VERSION}
 fi
 if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
+    mkdir -p arm-cross-compiler
+    wget https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+    tar -xJf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz -C arm-cross-compiler
+    TOOLCHAIN="$(pwd)"
+    TOOLCHAIN_PATH=${TOOLCHAIN}/arm-cross-compiler/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin
+    export PATH=$PATH:${TOOLCHAIN_PATH}
+    git clone https://github.com/cu-ecen-aeld/assignments-3-and-later-aldin28.git
+    EXEC="$(pwd)"
+    EXEC_PATH=${EXEC}/assignments-3-and-later-aldin28
     cd linux-stable
     echo "Checking out version ${KERNEL_VERSION}"
     git checkout ${KERNEL_VERSION}
     sleep 1
-    #export PATH=/usr/bin:$PATH
-    make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- mrproper
-    #make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- mrproper 
+    #make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- mrproper
+    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- mrproper 
     sleep 1
-    make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- defconfig
-    #make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- defconfig
+    #make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- defconfig
+    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- defconfig
     sleep 1 
-    make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- all
-    make ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- Image
-    #make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- all
-    #make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- Image
+    #make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- all
+    #make ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- Image
+    make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- all
+    make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- Image
     
 fi
 
@@ -72,7 +80,8 @@ then
     git checkout ${BUSYBOX_VERSION}
     # TODO:  Configure busybox
     make distclean
-    make ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- defconfig
+    #make ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- defconfig
+    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- defconfig
 else
     cd busybox
 fi
@@ -81,22 +90,29 @@ fi
 # TODO: Make and install busybox
 #make -j4 ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make distclean
-make ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- defconfig
-make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- 
-make -j4 CONFIG_PREFIX=${OUTDIR}/rootfs ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- install
+#make ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- defconfig
+make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- defconfig
+make -j4 ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
+#make -j4 ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- 
+#make -j4 CONFIG_PREFIX=${OUTDIR}/rootfs ARCH=arm64 CROSS_COMPILE=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- install
 #make CONFIG_PREFIX=${OUTDIR}/rootfs ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- install
-#make CONFIG_PREFIX=${OUTDIR}/rootfs ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
+make CONFIG_PREFIX=${OUTDIR}/rootfs ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
 
 echo "Library dependencies"
-/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/${CROSS_COMPILE}readelf -a busybox | grep "program interpreter"
-/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/${CROSS_COMPILE}readelf -a busybox | grep "Shared library"
+#/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/${CROSS_COMPILE}readelf -a busybox | grep "program interpreter"
+${CROSS_COMPILE}readelf -a busybox | grep "program interpreter"
+#/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/${CROSS_COMPILE}readelf -a busybox | grep "Shared library"
+${CROSS_COMPILE}readelf -a busybox | grep "Shared library"
 
 # TODO: Add library dependencies to rootfs
-cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1  ${OUTDIR}/rootfs/lib/
-
-cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib64/libm.so.6  ${OUTDIR}/rootfs/lib64/
-cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib64/libresolv.so.2  ${OUTDIR}/rootfs/lib64/
-cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib64/libc.so.6  ${OUTDIR}/rootfs/lib64/
+#cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1  ${OUTDIR}/rootfs/lib/
+cp ${TOOLCHAIN_PATH}/../aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1  ${OUTDIR}/rootfs/lib/
+#cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib64/libm.so.6  ${OUTDIR}/rootfs/lib64/
+cp ${TOOLCHAIN_PATH}/../aarch64-none-linux-gnu/libc/lib64/libm.so.6  ${OUTDIR}/rootfs/lib64/
+#cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib64/libresolv.so.2  ${OUTDIR}/rootfs/lib64/
+cp ${TOOLCHAIN_PATH}/../aarch64-none-linux-gnu/libc/lib64/libresolv.so.2  ${OUTDIR}/rootfs/lib64/
+#cp /home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/lib64/libc.so.6  ${OUTDIR}/rootfs/lib64/
+cp ${TOOLCHAIN_PATH}/../aarch64-none-linux-gnu/libc/lib64/libc.so.6  ${OUTDIR}/rootfs/lib64/
 # TODO: Make device nodes
 #sudo mknod -m 666 ${OUTDIR}/rootfs/dev/null c 1 3
 #sudo mknod -m 666 ${OUTDIR}/rootfs/dev/tty0 c 5 1
@@ -106,16 +122,19 @@ sudo mknod -m 666 ${OUTDIR}/rootfs/dev/console c 5 1
 sudo mknod -m 666 ${OUTDIR}/rootfs/dev/ttyS0 c 4 64
 
 # TODO: Clean and build the writer utility
-cd /home/aldin/coursera/assignment-1-aldin28/finder-app
+cd ${EXEC_PATH}/finder-app
+#cd /home/aldin/coursera/assignment-1-aldin28/finder-app
 make clean
-make CC=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-gcc
+make CC=aarch64-none-linux-gnu-gcc
 cp writer writer.c Makefile ${OUTDIR}/rootfs/home
 cd -
 
 # TODO: Copy the finder related scripts and executables to the /home directory
 # on the target rootfs
-cp -r /home/aldin/coursera/assignment-1-aldin28/finder-app/finder.sh /home/aldin/coursera/assignment-1-aldin28/conf /home/aldin/coursera/assignment-1-aldin28/finder-app/finder-test.sh ${OUTDIR}/rootfs/home 
-cp /home/aldin/coursera/assignment-1-aldin28/finder-app/autorun-qemu.sh ${OUTDIR}/rootfs/home 
+cp -r ${EXEC_PATH}/finder-app/finder.sh ${EXEC_PATH}/conf ${EXEC_PATH}/finder-app/finder-test.sh  ${OUTDIR}/rootfs/home
+cp ${EXEC_PATH}/finder-app/autorun-qemu.sh ${OUTDIR}/rootfs/home
+#cp -r /home/aldin/coursera/assignment-1-aldin28/finder-app/finder.sh /home/aldin/coursera/assignment-1-aldin28/conf /home/aldin/coursera/assignment-1-aldin28/finder-app/finder-test.sh ${OUTDIR}/rootfs/home 
+#cp /home/aldin/coursera/assignment-1-aldin28/finder-app/autorun-qemu.sh ${OUTDIR}/rootfs/home 
 # TODO: Chown the root directory
 cd ${OUTDIR}/rootfs
 sudo chown -R root:root .
