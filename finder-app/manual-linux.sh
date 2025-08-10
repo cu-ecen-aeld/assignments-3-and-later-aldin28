@@ -12,7 +12,6 @@ BUSYBOX_VERSION=1_33_1
 FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
 CROSS_COMPILE=aarch64-none-linux-gnu-
-export PATH=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin:/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
 
 if [ $# -lt 1 ]
 then
@@ -78,7 +77,7 @@ else
     cd busybox
 fi
 #export PATH=/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin:/home/aldin/coursera/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/bin:$PATH
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:$PATH
+#export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:$PATH
 # TODO: Make and install busybox
 #make -j4 ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make distclean
@@ -127,4 +126,4 @@ find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
 gzip -f ${OUTDIR}/initramfs.cpio
 cd "${OUTDIR}/linux-stable"
 cp ${OUTDIR}/linux-stable/arch/arm64/boot/Image ${OUTDIR}/Image
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+#export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
